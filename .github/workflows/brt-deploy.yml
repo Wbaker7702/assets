@@ -6,12 +6,15 @@ on:
       circulating_supply:
         description: "Updated circulating supply"
         required: false
+        type: string
       btc_locked:
         description: "Total BTC locked"
         required: false
+        type: string
       collateral_ratio:
         description: "Collateral ratio (e.g. 1.05)"
         required: false
+        type: string
   push:
     paths:
       - "internal/brtserver/data/latest.json"
@@ -42,6 +45,7 @@ jobs:
           BRT_CIRCULATING_SUPPLY: ${{ inputs.circulating_supply || '' }}
           BRT_BTC_LOCKED: ${{ inputs.btc_locked || '' }}
           BRT_COLLATERAL_RATIO: ${{ inputs.collateral_ratio || '' }}
+          BRT_PIPELINE_TRIGGERED: github-actions
         run: |
           python3 .github/scripts/update_brt_state.py
 

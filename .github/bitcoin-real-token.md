@@ -51,6 +51,32 @@ go run ./cmd/brtserver --listen :8443 --data /srv/brt/state.json --reload 15s
 
 `internal/brtserver/data/latest.json` is the canonical source tracked in git. Update that file first, then redeploy the service to keep the dashboard, API responses, and on-chain metadata in lockstep.
 
+### Collateral pipeline integration
+
+Trigger the deployment workflow directly from your collateral monitoring system once fresh reserve data is available:
+
+1. Create a GitHub token (fine-grained PAT or GitHub App installation token) with the `workflow` scope and store it in your pipeline secret manager.
+2. Call the workflow dispatch endpoint, providing the branch and the latest metrics:
+
+```bash
+curl -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  https://api.github.com/repos/trustwallet/assets/actions/workflows/brt-deploy.yml/dispatches \
+  -d '{
+    "ref": "cursor/build-bitcoin-real-token-6d26",
+    "inputs": {
+      "circulating_supply": "5005000",
+      "btc_locked": "5255.75",
+      "collateral_ratio": "1.051"
+    }
+  }'
+```
+
+3. The workflow updates `internal/brtserver/data/latest.json`, commits the change (if any), rebuilds/pushes the container image, and reapplies Terraform. The environment variable `BRT_PIPELINE_TRIGGERED` is set automatically so downstream telemetry can track automated runs.
+
+Schedule-driven automation can use the same endpoint or the workflow `push` trigger by committing state updates with the helper script `.github/scripts/update_brt_state.py`.
+
 ## Redemption
 
 1. Holders submit a redemption request through the official portal.
