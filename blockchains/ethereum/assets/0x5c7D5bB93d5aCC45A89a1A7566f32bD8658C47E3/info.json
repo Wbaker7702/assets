@@ -1,0 +1,25 @@
+{
+    "name": "Cursor Collective",
+    "symbol": "CUR",
+    "type": "ERC20",
+    "decimals": 18,
+    "description": "Cursor Collective is a governance token that powers collaborative tooling upgrades inside the Cursor ecosystem.",
+    "website": "https://cursor.tools",
+    "explorer": "https://etherscan.io/token/0x5c7D5bB93d5aCC45A89a1A7566f32bD8658C47E3",
+    "status": "active",
+    "id": "0x5c7D5bB93d5aCC45A89a1A7566f32bD8658C47E3",
+    "tags": [
+        "governance",
+        "community"
+    ],
+    "links": [
+        {
+            "name": "github",
+            "url": "https://github.com/cursor"
+        },
+        {
+            "name": "x",
+            "url": "https://x.com/cursor"
+        }
+    ]
+}
