@@ -64,7 +64,7 @@ curl -X POST \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
   https://api.github.com/repos/trustwallet/assets/actions/workflows/brt-deploy.yml/dispatches \
   -d '{
-    "ref": "cursor/build-bitcoin-real-token-6d26",
+    "ref": "main",
     "inputs": {
       "circulating_supply": "5005000",
       "btc_locked": "5255.75",
@@ -73,7 +73,9 @@ curl -X POST \
   }'
 ```
 
-3. The workflow updates `internal/brtserver/data/latest.json`, commits the change (if any), rebuilds/pushes the container image, and reapplies Terraform. The environment variable `BRT_PIPELINE_TRIGGERED` is set automatically so downstream telemetry can track automated runs.
+3. Store the GitHub token in a secure secret manager (for example, AWS Secrets Manager, HashiCorp Vault, or your CI/CD vault) and have the collateral exporter retrieve it at runtime. The workflow updates `internal/brtserver/data/latest.json`, commits the change (if any), rebuilds/pushes the container image, and reapplies Terraform. The environment variable `BRT_PIPELINE_TRIGGERED` is set automatically so downstream telemetry can track automated runs.
+
+4. Hook your exporter to issue this request whenever reserve balances change, then monitor the workflow run history (or subscribe to workflow webhooks) to confirm each update is processed.
 
 Schedule-driven automation can use the same endpoint or the workflow `push` trigger by committing state updates with the helper script `.github/scripts/update_brt_state.py`.
 
