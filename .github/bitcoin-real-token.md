@@ -29,10 +29,27 @@ BRT inherits standard BRC-20 transfer semantics:
 ## Collateral Monitoring
 
 - Real-time dashboard: <https://bitcoinrealtoken.org/proof-of-reserves>
+- JSON API: `https://bitcoinrealtoken.org/api/proof-of-reserves`
 - GitHub proofs: <https://github.com/bitcoinrealtoken/proof-of-reserves>
 - Open telemetry feed: `wss://stream.bitcoinrealtoken.org/reserves`
 
 Reserve attestations are issued weekly and whenever collateral balances change materially. Independent auditors can verify balances by monitoring the multisig address and reconciling with the published proofs.
+
+### Hosting the dashboard and forum
+
+Run the lightweight Go server packaged with this repository to expose the dashboard, JSON API, and governance forum:
+
+```bash
+go run ./cmd/brtserver --listen :8080
+```
+
+Set up a reverse proxy or load balancer to route `https://bitcoinrealtoken.org` and `https://forum.bitcoinrealtoken.org` to the running service. Use the `--data` flag if you want the server to watch an external JSON snapshot instead of the embedded values:
+
+```bash
+go run ./cmd/brtserver --listen :8443 --data /srv/brt/state.json --reload 15s
+```
+
+`internal/brtserver/data/latest.json` is the canonical source tracked in git. Update that file first, then redeploy the service to keep the dashboard, API responses, and on-chain metadata in lockstep.
 
 ## Redemption
 
