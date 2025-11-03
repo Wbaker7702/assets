@@ -100,6 +100,13 @@ func convertTokenPrice(raw *tokenPriceERC20) *TokenPrice {
 		return nil
 	}
 
+	// Return nil if all fields are nil (no price data available)
+	if raw.Rate == nil && raw.Diff == nil && raw.Diff7d == nil &&
+		raw.MarketCapUSD == nil && raw.AvailableSupply == nil && raw.Volume24h == nil &&
+		raw.Timestamp == nil {
+		return nil
+	}
+
 	price := &TokenPrice{}
 
 	if raw.Rate != nil {
@@ -128,12 +135,6 @@ func convertTokenPrice(raw *tokenPriceERC20) *TokenPrice {
 
 	if raw.Timestamp != nil && *raw.Timestamp > 0 {
 		price.UpdatedAt = time.Unix(*raw.Timestamp, 0).UTC()
-	}
-
-	if raw.Rate == nil && raw.Diff == nil && raw.Diff7d == nil &&
-		raw.MarketCapUSD == nil && raw.AvailableSupply == nil && raw.Volume24h == nil &&
-		raw.Timestamp == nil {
-		return nil
 	}
 
 	return price
