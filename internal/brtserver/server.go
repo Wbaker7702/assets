@@ -374,12 +374,52 @@ func getTemplates() *template.Template {
 				return formatted
 			},
 			"formatCurrency": func(v float64, precision int) string {
-				format := fmt.Sprintf("%%.%df", precision)
-				value := strings.TrimRight(strings.TrimRight(fmt.Sprintf(format, v), "0"), ".")
-				if value == "" {
-					value = "0"
+				// Helper to add thousand separators
+				addCommas := func(s string) string {
+					n := len(s)
+					if n <= 3 {
+						return s
+					}
+					var neg string
+					if s[0] == '-' {
+						neg = "-"
+						s = s[1:]
+						n--
+					}
+					// Find decimal point, if any
+					intPart := s
+					fracPart := ""
+					if dot := strings.Index(s, "."); dot != -1 {
+						intPart = s[:dot]
+						fracPart = s[dot:]
+					}
+					// Insert commas into intPart
+					var out []byte
+					for i, c := range intPart {
+						if i != 0 && (len(intPart)-i)%3 == 0 {
+							out = append(out, ',')
+						}
+						out = append(out, byte(c))
+					}
+					return neg + string(out) + fracPart
 				}
-				return "$" + value
+
+				if precision == 0 {
+					// Round to nearest integer and format with commas
+					rounded := int64(v + 0.5)
+					if v < 0 {
+						rounded = int64(v - 0.5)
+					}
+					return "$" + addCommas(fmt.Sprintf("%d", rounded))
+				}
+				// Format with specified precision and commas
+				s := fmt.Sprintf("%.*f", precision, v)
+				// Remove trailing zeros and decimal if needed
+				if strings.Contains(s, ".") {
+					s = strings.TrimRight(s, "0")
+					s = strings.TrimRight(s, ".")
+				}
+				return "$" + addCommas(s)
 			},
 			"formatBPS": func(v int) string {
 				return fmt.Sprintf("%.2f%%", float64(v)/100.0)
