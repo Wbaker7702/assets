@@ -1,4 +1,6 @@
 name: Check
+permissions:
+  contents: read
 
 on:
   push:
@@ -14,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6
         with:
           go-version: 1.18
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Run check
         run: make check

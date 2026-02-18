@@ -5,6 +5,7 @@ VERSION := $(shell git describe --tags 2>/dev/null || git describe --all)
 BUILD := $(shell git rev-parse --short HEAD)
 PROJECT_NAME := $(shell basename "$(PWD)")
 BUILD_TARGETS := $(shell find cmd -name \*main.go | awk -F'/' '{print $$0}')
+GOLANGCI_LINT_VERSION ?= v1.62.2
 
 # Use linker flags to provide version/build settings
 LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
@@ -19,26 +20,23 @@ GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 all: fmt lint test
 
 build:
+	@mkdir -p bin
 	@echo "  >  Building main.go to bin/assets"
 	go build $(LDFLAGS) -o bin/assets ./cmd
+	@echo "  >  Building brtserver to bin/brtserver"
+	go build -o bin/brtserver ./cmd/brtserver
 
 test:
 	@echo "  >  Running unit tests"
-	go test -cover -race -coverprofile=coverage.txt -covermode=atomic -v ./...
+	# ensure artifacts don't pollute the repo root
+	mkdir -p bin
+	go test -cover -race -coverprofile=bin/coverage.txt -covermode=atomic -v ./...
 
 fmt:
 	@echo "  >  Format all go files"
 	gofmt -w ${GOFMT_FILES}
 
 lint-install:
-ifeq (,$(wildcard test -f bin/golangci-lint))
-	@echo "  >  Installing golint"
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- v1.50.1
-endif
-
-lint: lint-install
-	@echo "  >  Running golint"
-	bin/golangci-lint run --timeout=2m
 
 # Assets commands.
 check: build
@@ -59,3 +57,8 @@ add-tokenlist: build
 
 add-tokenlist-extended: build
 	bin/assets add-tokenlist-extended $(asset_id)
+
+.PHONY: brt-serve
+brt-serve:
+	@echo "  >  Serving Bitcoin Real Token dashboard on http://localhost:8080"
+	go run ./cmd/brtserver --listen :8080
